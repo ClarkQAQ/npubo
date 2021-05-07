@@ -8,13 +8,22 @@ import (
 	"time"
 )
 
-var pub *npubo.Publisher = npubo.NewPublisher(500)
+var pub *npubo.Publisher = npubo.NewPublisher(500, true)
 
 func TestSub(t *testing.T) {
-	pub.Subscribe("sub_one/one", "QwQ", func(sub *npubo.Subscriber, val interface{}) error {
+
+	sub, _ := pub.Subscribe("sub_one/one", "QwQ", func(sub *npubo.Subscriber, val interface{}) error {
 		fmt.Println("sub", sub, " message", val)
 		return nil
 	})
+
+	go func(sub *npubo.Subscriber) {
+		for val := range sub.C {
+			fmt.Println("chan:", val.Subscriber.CallTopic)
+		}
+	}(sub)
+
+	//sub.Evict()
 
 	pub.Subscribe("sub_one/timeout", "QwQ", func(sub *npubo.Subscriber, val interface{}) error {
 		time.Sleep(time.Second)
@@ -24,6 +33,7 @@ func TestSub(t *testing.T) {
 	pub.Subscribe("sub_one/error", "QwQ", func(sub *npubo.Subscriber, val interface{}) error {
 		return errors.New("a error")
 	})
+	//pub.Close()
 }
 
 func TestPub(t *testing.T) {
@@ -36,6 +46,10 @@ func TestPub(t *testing.T) {
 	})
 
 	pub.Publish("sub_one/error", "Message", func(sub *npubo.Subscriber, e error) {
+		fmt.Println("sub", sub, " error", e)
+	})
+
+	pub.Publish("*", "Call All Subscriber", func(sub *npubo.Subscriber, e error) {
 		fmt.Println("sub", sub, " error", e)
 	})
 }
