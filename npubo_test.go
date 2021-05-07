@@ -12,7 +12,7 @@ var pub *npubo.Publisher = npubo.NewPublisher(500, true)
 
 func TestSub(t *testing.T) {
 
-	sub, _ := pub.Subscribe("sub_one/one", "QwQ", func(sub *npubo.Subscriber, val interface{}) error {
+	sub, _ := pub.Subscribe("sub_one/one", "QwQ", true, func(sub *npubo.Subscriber, val interface{}) error {
 		fmt.Println("sub", sub, " message", val)
 		return nil
 	})
@@ -25,12 +25,12 @@ func TestSub(t *testing.T) {
 
 	//sub.Evict()
 
-	pub.Subscribe("sub_one/timeout", "QwQ", func(sub *npubo.Subscriber, val interface{}) error {
+	pub.Subscribe("sub_one/timeout", "QwQ", false, func(sub *npubo.Subscriber, val interface{}) error {
 		time.Sleep(time.Second)
 		return nil
 	})
 
-	pub.Subscribe("sub_one/error", "QwQ", func(sub *npubo.Subscriber, val interface{}) error {
+	pub.Subscribe("sub_one/error", "QwQ", false, func(sub *npubo.Subscriber, val interface{}) error {
 		return errors.New("a error")
 	})
 	//pub.Close()
@@ -56,7 +56,7 @@ func TestPub(t *testing.T) {
 
 func BenchmarkSub(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		pub.Subscribe(fmt.Sprintf("sub_more/%v", i), "QwQ", func(sub *npubo.Subscriber, val interface{}) error {
+		pub.Subscribe(fmt.Sprintf("sub_more/%v", i), "QwQ", false, func(sub *npubo.Subscriber, val interface{}) error {
 			return nil
 		})
 	}

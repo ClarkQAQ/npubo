@@ -3,7 +3,7 @@ package npubo
 import "strings"
 
 // 订阅
-func (that *Publisher) Subscribe(topic string, c_id string, call Call) (*Subscriber, error) {
+func (that *Publisher) Subscribe(topic string, c_id string, openChan bool, call Call) (*Subscriber, error) {
 	that.rwLock.Lock()
 	defer that.rwLock.Unlock()
 
@@ -28,7 +28,7 @@ func (that *Publisher) Subscribe(topic string, c_id string, call Call) (*Subscri
 		if i == len(cals)-1 {
 			nowNode[v].Calls[c_id] = &call
 
-			if that.openChan {
+			if that.openChan && openChan {
 				chanCallBack := func(subData *Subscriber, val interface{}) error {
 					sub.C <- ChanCall{
 						Subscriber: subData,
