@@ -1,46 +1,25 @@
 package npubo
 
-import (
-	"fmt"
-	"reflect"
-)
-
-type Context struct {
+type Context[T any] struct {
 	topic string
-	data  interface{}
+	data  T
 }
 
-func newContext(topic string, data interface{}) *Context {
-	return &Context{
+func newContext[T any](topic string, data T) *Context[T] {
+	return &Context[T]{
 		topic: topic,
 		data:  data,
 	}
 }
 
-func (c *Context) Topic() string {
+// 获取发布的主题
+// @return topic string 发布数据的主题路径
+func (c *Context[T]) Topic() string {
 	return c.topic
 }
 
-func (c *Context) Data() interface{} {
+// 获取发布的数据
+// @return data T 发布的数据
+func (c *Context[T]) Data() T {
 	return c.data
-}
-
-func (c *Context) Int64() int64 {
-	if v, ok := c.data.(int64); ok {
-		return v
-	}
-
-	return 0
-}
-
-func (c *Context) String() string {
-	if v, ok := c.data.(string); ok {
-		return v
-	}
-
-	return fmt.Sprint(c.data)
-}
-
-func (c *Context) Type() string {
-	return reflect.TypeOf(c.data).Name()
 }

@@ -7,10 +7,10 @@ import (
 )
 
 func BenchmarkSub(b *testing.B) {
-	n := npubo.New()
+	n := npubo.New[bool]()
 
 	for i := 0; i < b.N; i++ {
-		n.Subscribe("sub_more/*id", func(c *npubo.Context) error {
+		n.Subscribe("sub_more/*", func(c *npubo.Context[bool]) error {
 			return nil
 		})
 	}
@@ -18,13 +18,13 @@ func BenchmarkSub(b *testing.B) {
 }
 
 func BenchmarkPub(b *testing.B) {
-	n := npubo.New()
+	n := npubo.New[bool]()
 
-	n.Subscribe("sub_more/*id", func(c *npubo.Context) error {
+	n.Subscribe("sub_more/*", func(c *npubo.Context[bool]) error {
 		return nil
 	})
 
 	for i := 0; i < b.N; i++ {
-		n.NepoPublish(fmt.Sprintf("sub_more/%d", i), "1")
+		n.Publish(fmt.Sprintf("sub_more/%d", i), true)
 	}
 }

@@ -1,32 +1,29 @@
 package npubo
 
-import (
-	"strings"
-)
-
-type Node struct {
-	field   *Node  // 上级节点
-	part    string // 当前节点路径
-	handler []HandlerFunc
-	node    map[string]*Node
+type Node[T any] struct {
+	field   *Node[T] // 上级节点
+	handler []HandlerFunc[T]
+	node    map[rune]*Node[T]
 }
 
-type HandlerFunc func(*Context) error
+type HandlerFunc[T any] func(*Context[T]) error
 
-func newNode(field *Node) *Node {
-	return &Node{
+func newNode[T any](field *Node[T]) *Node[T] {
+	return &Node[T]{
 		field:   field,
-		part:    "",
-		handler: []HandlerFunc{},
-		node:    make(map[string]*Node),
+		handler: []HandlerFunc[T]{},
+		node:    make(map[rune]*Node[T]),
 	}
 }
 
-func (p *Node) addNode(topic string, h HandlerFunc) (*Node, int) {
-	parts := strings.Split(topic, "/")
+func (p *Node[T]) addNode(topic string, h HandlerFunc[T]) (*Node[T], int) {
+	parts := []rune(topic)
 
 	for i := 0; i < len(parts); i++ {
 		t := parts[i]
+		if t == '/' {
+			continue
+		}
 
 		// 路由结构是否存在
 		if _, ok := p.node[t]; !ok {
@@ -35,9 +32,8 @@ func (p *Node) addNode(topic string, h HandlerFunc) (*Node, int) {
 
 		// 指向
 		p = p.node[t]
-		p.part = parts[i]
 
-		if t == "*" {
+		if t == '*' {
 			break
 		}
 	}
@@ -47,15 +43,18 @@ func (p *Node) addNode(topic string, h HandlerFunc) (*Node, int) {
 	return p, len(p.handler) - 1
 }
 
-func (p *Node) getRoute(topic string) []HandlerFunc {
-	parts := strings.Split(topic, "/")
-	handler := []HandlerFunc{}
+func (p *Node[T]) getRoute(topic string) []HandlerFunc[T] {
+	parts := []rune(topic)
+	handler := []HandlerFunc[T]{}
 
 	for i := 0; i < len(parts); i++ {
 		t := parts[i]
+		if t == '/' {
+			continue
+		}
 
 		// 查找以及通配
-		if v, ok := p.node["*"]; ok {
+		if v, ok := p.node['*']; ok {
 			handler = append(handler, v.handler...)
 		}
 
@@ -70,7 +69,7 @@ func (p *Node) getRoute(topic string) []HandlerFunc {
 	return handler
 }
 
-func (p *Node) removeNode(id int) {
+func (p *Node[T]) removeNode(id int) {
 	if len(p.handler) > id {
 		p.handler = append(p.handler[:id], p.handler[id+1:]...)
 	}
